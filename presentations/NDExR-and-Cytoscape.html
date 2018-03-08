@@ -1,0 +1,427 @@
+<!doctype html>
+<html>
+	<head>
+		<!-- Set the base so we look like we're in the presentations directory -->
+		<!-- <base href="../../"> -->
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>reveal.js</title>
+
+		<link rel="stylesheet" href="../css/reveal.css">
+		<link rel="stylesheet" href="../css/theme/cytoscape-presentation-1.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="../lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? '../css/print/pdf.css' : '../css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="footer">
+				<img src="../assets/images/UMG.png" style="height:33px;opacity:0.5">
+				<img src="../assets/images/ams.png" style="height:33px;opacity:0.5"> 
+			</div>
+			<div class="slides">
+			<!-- this is just a shell to import the sections file -->
+			<section>
+				<section>
+					<h1>NDExR and Cytoscape: Interactive and automated visualization of biological networks using R</h1>
+					<h2>by Florian Auer</h2>
+					<h3>Frank Kramer, Tim Beißbarth</h3>
+					<h4>Statistical Bioinformatics, <br />University Medical Center Göttingen</h4>
+				</section>
+				<section>
+					<h1>Biological Networks</h1>
+					<ul>
+						<li>Gene regulatory network</li>
+						<li>Signaling network</li>
+						<li>Protein-Protein interaction</li>
+						<li>Metabolic network</li>
+						<li>Drug-disease associations</li>
+						<li>...</li>
+					</ul>
+				</section>
+				<section>
+					<h1>Network Visualization</span></h1>
+					<div class="column">
+						<img src="modules/NDExR-and-Cytoscape/igraph-simple.png" class="plain">
+					</div>
+					<div class="column">
+						<img src="modules/NDExR-and-Cytoscape/cytoscape.png" class="plain">
+					</div>
+				</section>
+			</section>
+			
+			<section id="intro-cytoscape" data-external="modules/intro-cytoscape-short/module.html"></section>
+	
+			<section id="ndex" data-external="modules/NDEx/module.html"></section>
+			
+			<section id="geneExpression">
+				<section id="NDExR" class="NDEx">
+					<h1>The PI3K/AKT signaling pathway: Associations of miRNAs with dysregulated gene expression in colorectal cancer.</h1>
+					<h5>Slattery ML, Mullany LE, Sakoda LC, Wolff RK, Stevens JR, Samowitz WS, Herrick JS.</h5>
+					<a>Mol Carcinog. 2018 Feb;57(2):243-261.</a> <br />
+					<a href="https://dx.doi.org/10.1002%2Fmc.22752">doi: 10.1002/mc.22752. Epub 2017 Nov 19.</a>
+					<blockquote>"The Kyoto Encyclopedia of Genes and Genomes (KEGG) [...] pathway map for PI3K‐AKT‐signaling was used to identify genes associated with this pathway."</blockquote>
+				</section>
+				<section>
+					<h1>Differential Gene Expression</h1>
+					<img src="modules/NDExR-and-Cytoscape/geneRegData.png" class="plain" style="width:100%">
+				</section>
+				<section>
+					<h1>Import Gene Table</h1>
+					<h5>File → Import → Table → File... → "PMC5760356.csv"</h5>
+					<img src="modules/NDExR-and-Cytoscape/importTable.png" class="plain" >
+				</section>
+				
+				<section>
+					<img src="modules/NDExR-and-Cytoscape/withoutStyles.png" class="plain" >
+				</section>
+				
+				<section>
+					<img src="modules/NDExR-and-Cytoscape/applyStyles.png" class="plain" >
+				</section>
+			</section>
+			
+			<section id="automation">
+				<section>
+				<h1>Automate!</h1>
+					<highlight>Why run a script when I could just use Cytoscape directly?</highlight><br/><br/>
+					<ul><li>For things you want to do multiple times, e.g., loops</li>
+					<li>For things you want to repeat in the future</li>
+					<li>For things you want to share with colleagues or publish</li>
+					<li>For things you are already working on in R or Python, etc</li></ul>
+				</section>
+				<section>
+					<h1>Bioinformatics Workflow</h1>
+					<img style="width:100%;" src="modules/NDExR-and-Cytoscape/workflow.png" class="plain">
+				</section>
+			</section>
+			
+			<section id="ndexr" data-external="modules/NDExR/module.html"></section>
+
+			<section id="igraph">
+				<section >
+					<h1>Visualization with iGraph</h1>
+					<pre><code class="hljs r" data-trim contenteditable>
+## using ndexr to convert an RCX to an igraph object
+graph = rcx_toNGraph(network) 
+plot(graph)
+					</code></pre>
+					<div class="fragment">
+						<img src="modules/NDExR-and-Cytoscape/igraph-simple.png" class="plain" style="width:50%">
+					</div>
+				</section>
+				
+				<section >
+					<pre><code class="hljs r" data-trim contenteditable style="height: 100%;max-height: 100%;">
+## map gene expression to vertices
+nodeSize = merge(data.frame(name=V(graph)$name),
+                 geneRegulation[,c("Gene", "FoldChange")], 
+                 by.x = "name", by.y = "Gene", all.x = T)
+
+## assign color to vertices
+nodeSize$color = ifelse(is.na(nodeSize$FoldChange), 0, 
+	as.integer((nodeSize$FoldChange^3)*120))
+V(graph)$color = ifelse(is.na(nodeSize$FoldChange), "lightgreen", 
+	rgb(nodeSize$color,0,255-nodeSize$color, 
+		maxColorValue = 255))
+                             
+## adjust edge weight for force directed layout
+E(graph)$weight = ifelse(E(graph)$i=="in-complex-with",1,2)
+
+## visulize the igraph!
+plot(graph, 
+     vertex.size = ifelse(is.na(nodeSize$FoldChange), 12, 
+		as.integer(nodeSize$FoldChange^3*11)),
+     vertex.label.cex = .7,
+     edge.arrow.size=.4)
+					</code></pre>
+				</section>
+				<section>
+					<h1>Looks better..</h1>
+					<img src="modules/NDExR-and-Cytoscape/igraph-advanced.png" class="plain" style="width: 70%;">
+				</section>
+			</section>
+
+
+
+			<section id="cyrest">
+				<section>
+					<h1>Cytoscape Script</h1>
+					<pre><code data-trim style="max-height: 15em;">#Import network
+network import file indexColumnTargetInteraction=1 ...
+  indexColumnSourceInteraction=2 file="input.xgmml"
+#Import and set style
+vizmap load file file="style.xml"
+vizmap apply styles=style-name
+#Set layout
+layout attribute-circle
+#Set view to fit display
+view fit content    
+#Save 
+view export OutputFile="output-name" options=PDF</code></pre>
+				</section>
+				<section>
+					<h1>cyREST App <div class="fragment fade-in" data-fragment-index="1" style="display: inline-block;">=> Core</div></h1>
+					<img style="width:100%;" src="modules/NDExR-and-Cytoscape/cyRest.png" class="plain">
+				</section>
+				<section >
+					<div style="position: absolute; top: 0px; left: 50px">
+						<img src="CytoscapeAutomation_1.png"  class="fragment fade-out" data-fragment-index="1"/>
+					</div>
+					<div style="position: absolute; top: 0px; left: 50px" class="fragment fade-in" data-fragment-index="1">
+						<img src="CytoscapeAutomation_2.png" class="fragment fade-out" data-fragment-index="2"/>
+					</div>
+					<div style="position: absolute; top: 0px; left: 50px" class="fragment fade-in" data-fragment-index="2">
+						<img src="CytoscapeAutomation_3.png"/>
+					</div>
+				</section>
+			</section>
+			
+			
+
+
+			<section id="r2cytoscape">
+				<section >
+					<h1>Visualization with Cytoscape</h1>
+					<pre><code class="hljs r" data-trim contenteditable style="height:100%;max-height:100%">
+nodes = data.frame(id=network$nodes$'@id', 
+   name=network$nodes$n, 
+   group=ifelse(network$nodes$n %in% geneRegulation$Gene,
+				"changed","normal"),
+   stringsAsFactors = F)
+edges = data.frame(source=network$edges$s, 
+   target=network$edges$t, 
+   id=network$edges$'@id', 
+   interaction=network$edges$i, 
+   stringsAsFactors = F)
+   
+## send the network to Cytoscape
+network.suid <- createNetwork(nodes, edges, 
+   "FancyNetwork", "MyCollection")
+					</code></pre>
+				</section>
+				
+				<section>
+					<h1>Plain network in Cytoscape</h1>
+					<img src="modules/NDExR-and-Cytoscape/cytoscape-simple.png" class="plain" style="width:54%">
+				</section>
+				
+				<section >
+					<h1>Import Gene Table</h1>
+					<pre><code class="hljs r" data-trim contenteditable >
+## add the gene regulation as table
+loadTableData(geneRegulation, 
+              data.key.column = "Gene", 
+              table = "node",
+              table.key.column = "name")
+					</code></pre>
+				</section>
+				
+				
+				<section >
+					<h1>Defining default Style</h1>
+					<pre><code class="hljs r" data-trim contenteditable style="height: 100%;max-height: 100%;">
+style.name = "FancyStyle"
+
+defaults <- list(NODE_SHAPE="ROUND_RECTANGLE",
+	NODE_FILL_COLOR="lightgreen",
+	NODE_SIZE=30,
+	NODE_LABEL_FONT_SIZE=8,
+	EDGE_WIDTH=4,
+	EDGE_TARGET_ARROW_UNSELECTED_PAINT="#404040",
+	EDGE_TARGET_ARROW_SHAPE="delta")
+      
+## node-table:name is used as default node label
+nodeLabels <- mapVisualProperty('node label','name','p')
+					</code></pre>
+				</section>
+
+				<section >
+					<h1>Adding a custom Node Style</h1>
+					<pre><code class="hljs r" data-trim contenteditable style="height: 100%;max-height: 100%;">
+nodeShape <- mapVisualProperty('node shape',
+	'group','d', c("changed"), c('ellipse'))
+
+## node size and color, and label size is based on fold change
+nodeSize <- mapVisualProperty('node size',
+	'FoldChange', 'c', c(0.7,1.5), c(40,100))
+nodeFills <- mapVisualProperty('node fill color',
+	'FoldChange', 'c', c(0.7,1.0,1.5), 
+	c('#FF0000','#888888','#0000FF'))
+nodeLabelFontSize <- mapVisualProperty('node label font size',
+	'FoldChange', 'c', c(0.7,1.5), c(11,29))
+					</code></pre>
+				</section>
+
+				<section >
+					<h1>...and Edge Style</h1>
+					<pre><code class="hljs r" data-trim contenteditable >
+edgeArrowShape <- mapVisualProperty('edge target arrow shape',
+	'interaction', 'd', c("in-complex-with"), c('none'))
+edgeColor <- mapVisualProperty('edge color',
+	'interaction', 'd', c("in-complex-with"), c('#FF4949'))
+					</code></pre>
+				</section>
+
+
+				<section >
+					<h1>Create and apply the custom Style</h1>
+					<pre><code class="hljs r" data-trim contenteditable >
+createStyle(style.name, defaults, list(nodeLabels, 
+	nodeSize, 
+	nodeFills, 
+	nodeLabelFontSize, 
+	nodeShape, 
+	edgeArrowShape, 
+	edgeColor))
+ 
+applyStyle(style.name)
+					</code></pre>
+				</section>
+				
+				<section>
+					<img src="modules/NDExR-and-Cytoscape/cytoscape.png" class="plain" style="width:58%">
+				</section>
+				
+				<section >
+					<h1>Export network</h1>
+					<pre><code class="hljs r" data-trim contenteditable >
+## export as png
+exportImage("cytoscape.png", "png")
+					</code></pre>
+				</section>
+				<section >
+					<h1>Send Network to NDEx</h1>
+					<pre><code class="hljs r" data-trim contenteditable >
+				## get the new network
+newNetwork <- createIgraphFromNetwork("FancyNetwork")
+
+## convert to RCX
+newRCX = ngraph_fromRCX(newNetwork)
+
+## create a new network on NDEx
+ndex_create_network(ndexcon, newRCX, )
+					</code></pre>
+				</section>
+			</section>
+
+
+			
+
+
+
+<section>
+				
+	<section>
+		<h1>CyREST API</h1>
+		<img src="modules/NDExR-and-Cytoscape/swagger.png" class="plain" style="width:100%">
+	</section>
+	<section>
+		<h1>Layouts</h1>
+		<ul>
+				<li>Grid</li>
+				<li >Hierarchical</li>
+				<li >Circular (Radial)</li>
+				<li >Partitions</li>
+				<li>Force-Directed</li>
+				<li >Combining layouts</li>
+				<li >Multi-layer layouts</li>
+				<li >Many, many others</li>
+		</ul>
+
+		<aside class="notes" data-markdown>
+		Add speaker notes here...
+		</aside>
+	</section>
+
+	<section>
+		<h1>Analytical Approaches</h1>
+		<div style="font-size: 80%; width: 45%; padding-right: 5%" class="column">
+			<p style="margin-top: 0px"><b>Network topology statistics</b> such as node degree, 
+			degree distribution, centralitiy, clustering coefficient, 
+			shortest paths, and robustness of the network to the random 
+			removal of single nodes are important network characteristics.<p>
+			<p class="fragment"><b>Modularity</b> refers to the identification of sub-networks 
+			of interconnected nodes that might represent molecules physically 
+			or functionally linked that work coordinately to achieve a specific function.</p>
+		</div>
+		<div style="font-size: 80%; padding-left: 5%" >
+			<p class="fragment"><b>Motif analysis</b> is the identification of small network patterns 
+			that are over-represented when compared with a randomized version of the 
+			same network. Regulatory elements are often composed of such motifs.</p>
+			<p class="fragment"><b>Network alignment and comparison</b> tools can identify similarities 
+			between networks and have been used to study evolutionary relationships 
+			between protein networks of organisms. </p>
+		</div>
+		<aside>
+		</aside>
+	</section>
+</section>
+<section>
+	<section>
+		<h1>Further Reading</h1>
+		<ul>
+			<li> Tutorials: <a href="https://cytoscape.github.io/cytoscape-tutorials">cytoscape.github.io/cytoscape-tutorials</a></li>
+			<li> Docker with Cytoscape and RStudio: <a href="https://hub.docker.com/r/flockowak/cytoscape/">hub.docker.com/r/flockowak/cytoscape/</a></li>
+			<li> Slides/RMarkdown <a href="florian-j-auer.github.io/NDExR-and-Cytoscape">florian-j-auer.github.io/NDExR-and-Cytoscape</a></li>
+			<img src="modules/NDExR-and-Cytoscape/qrcode.png" class="plain" style="width:58%">
+		</ul>
+	</section>
+</section>
+
+			</div>
+		</div>
+
+		<script src="../lib/js/head.min.js"></script>
+		<script src="../js/reveal.js"></script>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-155159-15', 'auto');
+  ga('send', 'pageview');
+
+</script>
+		<script>
+			// More info https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				history: true,
+				controls: true,
+				progress: true,
+				slideNumber: false,
+				touch: true,
+				fragments: true,
+				help: true,
+				showNotes: false,
+				previewLinks: false,
+				transition: 'slide', // none/fade/slide/convex/concave/zoom
+				width: 1200,
+				height: 860,
+				autoSlide: 0,
+
+				// More info https://github.com/hakimel/reveal.js#dependencies
+				dependencies: [
+				{ src: '../plugin/markdown/marked.js' },
+				{ src: '../plugin/markdown/markdown.js' },
+				{ src: '../plugin/markdown/zoom.js', async: true, condition: function(){ return !!document.body.classList; } },
+				{ src: '../plugin/zoom-js/zoom.js', async: true, condition: function(){ return !!document.body.classList; } },
+				{ src: '../plugin/notes/notes.js', async: true },
+				{ src: '../plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+				{ src: '../plugin/external/external.js', condition: function() { return !!document.querySelector( '[data-external]' ); } }
+				]
+				});
+			</script>
+		</body>
+	</html>

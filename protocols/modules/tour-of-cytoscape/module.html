@@ -1,0 +1,130 @@
+<section>
+<h1>Tour of Cytoscape</h1>
+<p>This tutorial represents a high-level tour of the features of Cytoscape. Detailed instructions for specific features are provided in separate tutorials linked to from each section.</p>
+<div class="cybrowser">
+<p>This tutorial is designed to run as a demo in the CyBrowser app, with interactive buttons for each task.</p>
+</div>
+</section>
+
+<section>
+<h1>Retrieving Networks</h1>
+<p>Cytoscape accepts network data in a variety of formats and from multiple sources, including many public interaction and network databases. This tutorial uses data from the <a href="https://string-db.org/"><highlight>STRING database</highlight></a> representing genes associated with breast cancer (pictured below).</p>
+<div style="float:left; width:50%">  
+<img src="modules/tour-of-cytoscape/string-bc.png"></div> 
+<div class="cybrowser">
+<input style="margin-bottom: 10px" type="button" class="btn btn-primary" onclick="cybrowser.executeCyCommand('network load url url=https://raw.githubusercontent.com/cytoscape/cytoscape-tutorials/gh-pages/protocols/data/STRING-BreastCancer.xgmml');" value="Load network"/><br />
+<input type="button" class="btn btn-primary" onclick="cybrowser.executeCyCommand('view fit content');" value="Fit content"/>
+</div>
+<p><b><a href="https://cytoscape.github.io/cytoscape-tutorials/protocols/modules/loading-network-data/#/">Learn more about Loading Networks</a></b></p>
+<p><b><a href="https://cytoscape.github.io/cytoscape-tutorials/protocols/modules/functional-enrichment/#/">Learn more about using STRING</a></b></p>
+</section>
+
+<section>
+<h1>Selecting Hub Genes</h1>
+<p>Networks can be filtered, and nodes selected, based on associated data or network properties. The STRING database provides many node and edge attributes that we can use to explore the network. For example, we can use the "disease score" attribute to select the top 3 genes, and then select first neighbors of these, thereby using the network connectivity together with the data to direct discovery.</p>
+<p>The figure below shows a selection of top three nodes and their first neighbors.</p>
+<div style="float:left; width:50%">  
+    <img src="modules/tour-of-cytoscape/select-nodes.png"></div>
+<div class="cybrowser">
+<input style="margin-bottom: 10px" type="button" class="btn btn-primary" onclick="cybrowser.executeCyCommand('network select nodeList=&quot;9606.ENSP00000261584,9606.ENSP00000324856,9606.ENSP00000265433&quot;');" value="Select top genes"/><br />
+<input type="button" class="btn btn-primary" onclick="cybrowser.executeCyCommand('network select firstNeighbors=any network=current');" value="Select first neighbors"/>
+</div>
+<p><b><a href="https://cytoscape.github.io/cytoscape-tutorials/protocols/modules/filtering-editing/#/">Learn more about Filtering and Editing tutorial</a></b></p>
+</section>
+
+<section>
+<h1>Creating Subnetwork</h1>
+<p>New networks can easily be created in Cytoscape from a selection of nodes and edges. Now that we have the top genes and their neighbors selected, we can create a subnetwork of this more focused subset of the network.</p>
+<p>Once the network is created, we can apply a layout algorithm to help visualize the network. Networks in Cytoscape can be manually manipulated in terms of layout, but Cytoscape also supports a large collection of automatic layout algorithms. Layout algorithms are available under the <highlight>Layout</highlight> menu.</p>
+<div style="float:left; width:40%">  
+    <img src="modules/tour-of-cytoscape/sub-layout.png"></div>
+<div class="cybrowser">
+<input style="margin-bottom: 10px" type="button" class="btn btn-primary" onclick="cybrowser.executeCyCommand('network create excludeEdges=false networkName=subnetwork nodeList=selected source=current');" value="Create subnetwork"/><br />
+<input type="button" class="btn btn-primary" onclick="cybrowser.executeCyCommand('layout kamada-kawai network=galFiltered.sif');" value="Apply Layout"/>
+    
+</div>
+<p><b><a href="http://manual.cytoscape.org/en/stable/Navigation_and_Layout.html?highlight=force-directed">Learn more about Layouts</a></b></p>
+</section>
+
+<section>
+<h1>Visualizing Data on Networks</h1>
+<p>Cytoscape allows the user to add node, edge and network data as node/edge/network data columns. This could include annotation data for genes, protein-protein interaction confidence scores as well as transcriptomics data. Data is visible in the Table Panel.</p>
+<p>We are going to load mutation data and expression data from the <a href="https://tcga-data.nci.nih.gov/docs/publications/brca_2012/">TCGA breast cancer dataset</a> which includes a wide variety of data types, including genomic DNA copy number arrays, DNA methylation, exome sequencing, mRNA arrays, microRNA sequencing and reverse phase protein arrays.</p>
+<div style="float:left; width:50%">  
+    <img src="modules/tour-of-cytoscape/table-panel.png"></div>
+<div class="cybrowser">
+<input style="margin-bottom: 10px" type="button" class="btn btn-primary" onclick="cybrowser.executeCyCommand('table import url url=https://raw.githubusercontent.com/cytoscape/cytoscape-tutorials/gh-pages/protocols/data/bcr-expr.txt KeyColumnForMapping=&quot;display name&quot; caseSensitiveNetworkCollectionKeys=false caseSensitiveNetworkKeys=false firstRowAsColumnNames=true TargetNetworkList=subnetwork keyColumnIndex=1 startLoadRow=1');" value="Load expression data"/><br />
+<input type="button" class="btn btn-primary" onclick="cybrowser.executeCyCommand('table import url url=https://raw.githubusercontent.com/cytoscape/cytoscape-tutorials/gh-pages/protocols/data/bcr-mut.txt KeyColumnForMapping=&quot;display name&quot; caseSensitiveNetworkCollectionKeys=false caseSensitiveNetworkKeys=false firstRowAsColumnNames=true TargetNetworkList=subnetwork keyColumnIndex=1 startLoadRow=1');" value="Load mutation data"/></div>
+<p><b><a href="https://cytoscape.github.io/cytoscape-tutorials/protocols/modules/loading-omics-data/#/">Learn more about Loading Data</a></b></p>    
+</section>
+    
+<section>
+<h1>Styles</h1>
+<p>One of Cytoscape’s strengths in network visualization is the ability to allow users to encode any table data (name, type, degree, weight, expression data, etc.) as a property (such as color, size of node, transparency, or font type) of the network. A set of these encoded or mapped table data sets is called a Style.</p>
+<div style="float:left; width:40%">
+<img src="modules/tour-of-cytoscape/style-expr.png">
+<!-- Loading styles will only work if we switch out the whole xgmml
+<div class="cybrowser"><input style="margin-bottom: 10px" type="button" class="btn btn-primary" onclick="cybrowser.executeCyCommand('vizmap apply styles=&quot;TCGA mean expression&quot;');" value="Apply expression style"/></div>-->
+</div>
+<div style="float:right; width:40%">
+<img src="modules/tour-of-cytoscape/style-expr-mut.png">
+<!--
+<div class="cybrowser"><input type="button" class="btn btn-primary" onclick="cybrowser.executeCyCommand('vizmap apply styles=&quot;TCGA expression and mutation&quot;');" value="Apply expression and mutation style"/></div></div>
+<div class="cybrowser"> 
+-->
+</div>
+<div style="float:left">
+<p><b><a href="https://cytoscape.github.io/cytoscape-tutorials/protocols/modules/mapping-data/#/">Learn more about Styles</a></b></p> </div>
+</section>
+
+<!--
+<section>
+<h1>Apps</h1>
+<p>Cytoscape’s capabilities are not fixed but can be expanded in a variety of ways with apps. The <a href="http://apps.cytoscape.org/">Cytoscape App Store</a> organizes over 300 apps in categories such as data integration, online data/network import, network analysis and visualization.</p>
+<p>The App Manager is available in Cytoscape under <highlight>Apps &rarr; App Manager....</highlight></p>
+<!-- Could add this content after loading of apps by command works
+<div class="column">
+<highlight>STRING TP53 network</highlight><br />
+<img src="modules/tour-of-cytoscape/STRING-TP53.png" style="width:60%">
+</div>-->
+<!--<div class="cybrowser">
+Could add this content after loading of apps by command works
+<div class="column">
+<highlight>STRING TP53 network</highlight><br />
+<img src="modules/tour-of-cytoscape/STRING-TP53.png" style="width:60%">
+<input type="button" class="btn btn-primary" onclick="cybrowser.executeCyCommand('string protein query query=tp53');" value="Load STRING network for TP53"/>
+</div>
+</div>
+<p>For details, see <a href="http://manual.cytoscape.org/en/stable/App_Manager.html">App Manager manual</a>.
+
+</section>
+-->
+
+<section>
+<h1>Export</h1>
+<p>Cytoscape provides a number of ways to save results and visualizations. Note that interactive butons on this page will export to the last export directory used in your Cytoscape installation.</p>
+	<ul>
+		<li>As a session: <highlight>File&rarr;Save</highlight>, <highlight>File&rarr;Save As...</highlight></li>
+		<li>As an image: <highlight>File&rarr;Export as Image...</highlight>  &nbsp; <input type="button" class="btn btn-primary" onclick="cybrowser.executeCyCommand('view export options=PNG');" value="Export PNG"/></li>
+		<li>To the web: <highlight>File&rarr;Export as Web Page...</highlight></li>
+		<li>To a public repository: <highlight>File&rarr;Export&rarr;Network Collection to NDEx</highlight></li>
+		<li>As a graph format file: <highlight>File&rarr;Export&rarr;Network</highlight>.
+			<ul>
+				<li>CX JSON</li>
+				<li>Cytoscape.js JSON</li>
+				<li>GraphML</li>
+				<li>PSI-MI</li>
+				<li>XGMML</li>
+				<li>SIF</li>
+			</ul></li>
+		</ul>
+</section>
+
+<section>
+<h1>Cytoscape Support</h1>
+<ul>
+<li><a href="https://groups.google.com/forum/#!forum/cytoscape-helpdesk">Cytoscape Help Desk</a></li>
+<li><a href="http://chianti.ucsd.edu/cyto_web/bugreport/bugreport.php">Report a bug</a></li>
+<li><a href="http://manual.cytoscape.org/en/stable/">Cytoscape manual</a></li>
+</ul>
+</section>
