@@ -303,11 +303,11 @@ exportImage("cytoscape.png", "png")
 				<section >
 					<h1>Send Network to NDEx</h1>
 					<pre><code class="hljs r" data-trim contenteditable >
-				## get the new network
+## get the new network
 newNetwork <- createIgraphFromNetwork("FancyNetwork")
 
 ## convert to RCX
-newRCX = ngraph_fromRCX(newNetwork)
+newRCX = ngraph_toRCX(newNetwork)
 
 ## create a new network on NDEx
 ndex_create_network(ndexcon, newRCX)
